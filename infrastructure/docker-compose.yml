@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # Base de datos relacional para datos estructurados
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: scraper_db
+    ports:
+      - "5432:5432"
+
+  # Redis para colas de tareas (Scrapy-Redis o Celery)
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  # Orquestador Airflow para agendar los scrapers
+  airflow:
+    image: apache/airflow:2.7.1
+    depends_on:
+      - db
+      - redis
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://admin:password@db/scraper_db
+
+  # Nuestra API de datos
+  api:
+    build: .
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db

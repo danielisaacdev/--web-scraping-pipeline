@@ -1,3 +1,12 @@
 venv/
 __pycache__/
+*.log
+data/*.csv
+data/*.json
 .env
+.idea/
+.vscode/
+*.pyc
+logs/
+airflow/
+db_data/
